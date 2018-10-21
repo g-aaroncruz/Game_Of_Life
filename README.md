@@ -1,6 +1,6 @@
 # Conway's Game_of_Life (C++)
 
-This is my rendition of Conway's game of life, currently still in progress.  
+This is my rendition of Conway's game of life.
 
 I'm using CImg (http://cimg.eu/) for my GUI, it's simpler to use than OpenGL or Vulcan and to my knowledge it's the fastest rendering library that is easy to use.  
 
@@ -17,4 +17,9 @@ This project uses CMake to compile the project, so use the following commands to
 `cmake ..`  
 
 `make`  
+
+# How do I use this thing?
+Once the window opens, you can click on each individual block to change it's state.  
+After you have an initialization you would like to keep, press `SPACE` to start the simulation.  
+Press `SPACE` again to stop the simulation
 
