@@ -9,13 +9,12 @@ message(STATUS "X11 Include Path :: ${X11_INCLUDE_DIR}")
 
 include_directories("include" ${X11_INCLUDE_DIR})
 
-
 add_executable(game_of_life
     src/main.cpp
     src/board.cpp
 )
 
-target_link_libraries (game_of_life
+target_link_libraries(game_of_life
     pthread
     ${X11_LIBRARIES}
 )

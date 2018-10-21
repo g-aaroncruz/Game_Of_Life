@@ -10,7 +10,7 @@ BOARD::BOARD(int board_size) :
     size = board_size;
     
     // i want 10 blocks per row / col
-    block_size = size / 10;
+    block_size = size / 30;
     num_blocks = size / block_size;
 
     // init to black
@@ -69,7 +69,7 @@ void BOARD::Start()
                 _thread.join();
             }
         }
-      }
+    }
 }
 
 /*
@@ -203,7 +203,9 @@ int BOARD::GetBlockRange(int x, int y, int* range)
      * range[3] : y2
      */
 
-    // the 2 is to keep the bordering around the images
+    // the constant values applied are because we need to only edit values
+    // only within the grey border
+
     range[0] = x * block_size + 1;
     range[1] = y * block_size + 1;
     range[2] = range[0] + (block_size - 2);
