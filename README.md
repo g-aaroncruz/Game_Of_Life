@@ -1,6 +1,6 @@
 # Conway's Game_of_Life (C++)
 
-This is my rendition of Conway's game of life, currently still in process.  
+This is my rendition of Conway's game of life, currently still in progress.  
 
 I'm using CImg (http://cimg.eu/) for my GUI, it's simpler to use than OpenGL or Vulcan and to my knowledge it's the fastest rendering library that is easy to use.  
 
