@@ -1,8 +1,9 @@
+#include <iostream>
+
 #include "board.hpp"
 
-#include <unistd.h> // for usleep
-
-BOARD::BOARD(int board_size)
+BOARD::BOARD(int board_size) :
+    thread_running(false)
 {
     unsigned char img[board_size * board_size];
 
@@ -21,11 +22,11 @@ BOARD::BOARD(int board_size)
             if (y % block_size == 0 || x % block_size == 0)
             {
                 // set border
-                img[idx] = 255 / 2;
+                img[idx] = grey;
             }
             else
             {
-                img[idx] = 0;
+                img[idx] = black;
             }
         }
     }
@@ -37,33 +38,157 @@ BOARD::BOARD(int board_size)
     disp.display(pic);
 }
 
+void BOARD::Start()
+{
+    while (! disp.is_closed())
+    {
+        disp.wait();
+        if (disp.button() && disp.mouse_y() >= 0)
+        {
+            const int y = disp.mouse_y();
+            const int x = disp.mouse_x();
+
+            if (! thread_running)
+            {
+                UpdateBoard(x / block_size, y / block_size);
+                pic = __pic;
+                disp.display(pic);
+            }
+	    }
+        else if (disp.is_keySPACE())
+        {
+
+            if (! _thread.joinable())
+            {
+                thread_running = true;
+                _thread = std::thread(&BOARD::EvolveThread, this);
+            }
+            else
+            {
+                thread_running = false;
+                _thread.join();
+            }
+        }
+      }
+}
+
 /*
  * Private Functions
+ * -----------------------
  */
 
-void BOARD::UpdateBoard()
+/*
+ * Thread that checks cells states and updates board
+ */
+void BOARD::EvolveThread()
 {
-    // for x
-    // for y
-    // check surrounding states
+    // we don't use 100
+    unsigned char default_val = 100;
+    int range[4];
+    unsigned char val[8];
+    while (thread_running)
+    {
+        for (int x = 0; x < num_blocks; x++)
+        {
+            for (int y = 0; y < num_blocks; y++)
+            {
+                int live_neighbors = 0;
+                // TODO: Can I make this cleaner?
+
+                // check states around current cell
+                // will return default value if coordinates are out of range
+                GetBlockRange(x - 1, y - 1, &range[0]);
+                val[0] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                GetBlockRange(x - 1, y, &range[0]);
+                val[1] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                GetBlockRange(x - 1, y + 1, &range[0]);
+                val[2] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                GetBlockRange(x, y + 1, &range[0]);
+                val[3] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                GetBlockRange(x + 1, y + 1, &range[0]);
+                val[4] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                GetBlockRange(x + 1, y, &range[0]);
+                val[5] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                GetBlockRange(x + 1, y - 1, &range[0]);
+                val[6] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                GetBlockRange(x, y - 1, &range[0]);
+                val[7] = pic.atXY(range[0], range[1], 0, 0,
+                                                default_val);
+                // get current status of cell
+                GetBlockRange(x, y, &range[0]);
+                unsigned char curr_state = pic.atXY(range[0], range[1], 0, 0,
+                                                        default_val);
+
+                for (int i = 0; i < 8; i++)
+                {
+                    if (val[i] != default_val)
+                    {
+                        if (val[i] == white)
+                        {
+                            live_neighbors += 1;
+                        }
+                    }
+                }
+
+                if ( curr_state == white && 
+                    (live_neighbors == 2 || live_neighbors == 3) )
+                {
+                      UpdateBoard(x, y, white);
+                }
+                else if (curr_state == black && live_neighbors == 3)
+                {
+                    UpdateBoard(x, y, white);
+                }
+                else
+                {
+                    UpdateBoard(x, y, black);
+                }
+            }
+        }
+
+        pic = __pic;
+        disp.display(pic);
+
+        // to keep people from having a seizure
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+}
+
+/*
+ * Changes the state of block at (x,y)
+ * state_override : 0 (off), 255 (white), 0 (black)
+ */
+void BOARD::UpdateBoard(int x, int y, int s_override)
+{
 
     int range[4];
-    for (int x = 0; x < num_blocks; x++)
+
+    GetBlockRange(x, y, &range[0]);
+
+    // turn block white if not overriden with black and currently black
+    // turn block white if overriden with white
+    if ( (__pic._atXY(range[0], range[1]) == black && s_override != black)
+        || s_override == white )
     {
-        for (int y = 0; y < num_blocks; y++)
-        {
-            GetBlockRange(x, y, &range[0]);
-
-            __pic.draw_rectangle(range[0], range[1],
-                range[2], range[3], &white);
-
-            pic = __pic;
-            disp.display(pic);
-            usleep(100000);
-
-
-        }
+        __pic.draw_rectangle(range[0], range[1], range[2], range[3], &white);
     }
+
+    // turn block black if not overriden with white and currently white
+    // turn block black if overriden with black
+    else if ( (__pic._atXY(range[0], range[1]) == white && s_override != white)
+            || s_override == black )
+    {
+        __pic.draw_rectangle(range[0], range[1], range[2], range[3], &black);
+    }
+
 }
 
 /*
@@ -72,15 +197,15 @@ void BOARD::UpdateBoard()
  */
 int BOARD::GetBlockRange(int x, int y, int* range)
 {
-    /* 0 : x1
-     * 1 : y1
-     * 2 : x2
-     * 3 : y2
-    */
+    /* range[0] : x1
+     * range[1] : y1
+     * range[2] : x2
+     * range[3] : y2
+     */
 
     // the 2 is to keep the bordering around the images
-    range[0] = x * block_size + 2;
-    range[1] = y * block_size + 2;
+    range[0] = x * block_size + 1;
+    range[1] = y * block_size + 1;
     range[2] = range[0] + (block_size - 2);
     range[3] = range[1] + (block_size - 2);
 

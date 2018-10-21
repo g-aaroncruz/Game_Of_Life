@@ -7,6 +7,6 @@
 int main()
 {
     BOARD game(size);
-    game.UpdateBoard();
+    game.Start();
     return 0;
 }
