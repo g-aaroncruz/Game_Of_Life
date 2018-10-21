@@ -2,7 +2,7 @@
 
 This is my rendition of Conway's game of life.
 
-I'm using CImg (http://cimg.eu/) for my GUI, it's simpler to use than OpenGL or Vulcan and it's pretty fast to render.
+I'm using CImg (http://cimg.eu/) for my GUI, it's simpler to use than OpenGL or Vulcan and it's pretty fast to render images.
 
 # Installation
 This program is dependent on Xorg's X11 dev package.  
