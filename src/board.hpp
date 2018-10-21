@@ -6,7 +6,7 @@ class BOARD
 {
     public:
 
-        explicit BOARD(int);
+        BOARD(int, int);
 
         // cimg does all cleanup for me
         ~BOARD() {};

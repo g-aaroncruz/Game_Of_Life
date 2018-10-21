@@ -1,16 +1,16 @@
 #include <iostream>
 
 #include "board.hpp"
+#include <map>
 
-BOARD::BOARD(int board_size) :
+BOARD::BOARD(int board_size, int num_of_blocks) :
     thread_running(false)
 {
     unsigned char img[board_size * board_size];
 
     size = board_size;
-    
-    // i want 10 blocks per row / col
-    block_size = size / 30;
+
+    block_size = size / num_of_blocks;
     num_blocks = size / block_size;
 
     // init to black
@@ -86,6 +86,14 @@ void BOARD::EvolveThread()
     unsigned char default_val = 100;
     int range[4];
     unsigned char val[8];
+    int neighbor_idx[8][2] =
+        {
+            {-1, -1}, {-1,  0}, {-1,  1},
+            { 0,  1}, { 1,  1},
+            { 1,  0}, { 1, -1},
+            { 0, -1}
+        };
+
     while (thread_running)
     {
         for (int x = 0; x < num_blocks; x++)
@@ -97,30 +105,14 @@ void BOARD::EvolveThread()
 
                 // check states around current cell
                 // will return default value if coordinates are out of range
-                GetBlockRange(x - 1, y - 1, &range[0]);
-                val[0] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
-                GetBlockRange(x - 1, y, &range[0]);
-                val[1] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
-                GetBlockRange(x - 1, y + 1, &range[0]);
-                val[2] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
-                GetBlockRange(x, y + 1, &range[0]);
-                val[3] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
-                GetBlockRange(x + 1, y + 1, &range[0]);
-                val[4] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
-                GetBlockRange(x + 1, y, &range[0]);
-                val[5] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
-                GetBlockRange(x + 1, y - 1, &range[0]);
-                val[6] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
-                GetBlockRange(x, y - 1, &range[0]);
-                val[7] = pic.atXY(range[0], range[1], 0, 0,
-                                                default_val);
+                for (int i = 0; i < 8; i++)
+                {
+                    GetBlockRange(x + neighbor_idx[i][0], 
+                                    y + neighbor_idx[i][1], &range[0]);
+                    val[i] = pic.atXY(range[0], range[1], 0, 0,
+                                        default_val);
+                }
+
                 // get current status of cell
                 GetBlockRange(x, y, &range[0]);
                 unsigned char curr_state = pic.atXY(range[0], range[1], 0, 0,
