@@ -156,7 +156,7 @@ void BOARD::EvolveThread()
 
 /*
  * Changes the state of block at (x,y)
- * state_override : 0 (off), 255 (white), 0 (black)
+ * state_override : -1 (off by default), 255 (white), 0 (black)
  */
 void BOARD::UpdateBoard(int x, int y, int s_override)
 {
