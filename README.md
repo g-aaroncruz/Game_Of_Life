@@ -1,4 +1,4 @@
-# Conway's Game_of_Life (C++)
+# Conway's Game of Life (C++)
 
 This is my rendition of Conway's game of life.
 

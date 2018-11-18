@@ -54,7 +54,7 @@ void BOARD::Start()
                 pic = __pic;
                 disp.display(pic);
             }
-	    }
+	}
         else if (disp.is_keySPACE())
         {
 
